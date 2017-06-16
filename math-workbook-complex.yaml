@@ -1,0 +1,57 @@
+---
+version: "2.0"
+
+name: math-workbook-complex
+description: A sample workflow that demonstrates nested workflow.
+
+workflows:
+    main:
+        type: direct
+        input:
+            - arg1
+            - arg2
+
+        tasks:
+            read:
+                 action: std.echo output=<% $.arg1 + $.arg2 %>
+                 on-success:
+                       - add_num1
+
+            add_num1:
+                workflow: add_num
+                input:
+                    var1: <% $.arg1 %>
+                    var2: <% $.arg2 %>
+
+                on-success:
+                    - mult-num1
+
+            mult-num1:
+                workflow: multiply_num
+                input:
+                    var1: <% $.arg1 %>
+                    var2: <% $.arg2 %>
+
+
+    add_num:
+        type: direct
+        input:
+            - var1
+            - var2
+
+        tasks:
+            add:
+                action: std.echo output=<% $.var1 + $.var2 %>
+                publish:
+                  output: <% task(add).result %>
+
+    multiply_num:
+        type: direct
+        input:
+            - var1
+            - var2
+        tasks:
+            multiply:
+                action: std.echo output=<% $.var1 * $.var2 %>
+                publish:
+                  output: <% task(multiply).result %>
